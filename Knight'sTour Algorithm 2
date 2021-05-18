@@ -1,0 +1,112 @@
+#include <iostream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <vector>
+#include <set>
+#include <map>
+#include <cstdlib>
+#include <ctime>
+#include <random>
+#include <iomanip>
+#include <chrono>
+#include <thread>
+using namespace std;
+using Clock = std::chrono::steady_clock;
+using std::chrono::time_point;
+using std::chrono::duration_cast;
+using std::chrono::nanoseconds;
+using std::chrono::milliseconds;
+using std::chrono::microseconds;
+int n, counter = 0, movecounter = 0;
+int moves[8][2] = { { 2, 1 } ,{ 2, -1 } ,{ -2, 1 } ,{ -2, -1 } ,{ 1, 2 } ,{ 1, -2 } ,{ -1, 2 } ,{ -1, -2 } };
+int visited[10005][10005];
+int num_moves(int x, int y)
+{
+	int ans = 0;
+	for (int i = 0; i < 8; i++)
+	{
+		int nr = x + moves[i][0];
+		int nc = y + moves[i][1];
+		if (nr > 0 && nr <= n && nc > 0 && nc <= n)
+			if (visited[nr][nc] == -1)
+				ans++;
+	}
+	return ans;
+}
+bool ok(int x, int y)
+{
+	if (x > 0 && x <= n && y > 0 && y <= n && visited[x][y] == -1)
+		return true;
+	return false;
+}
+bool solve(int row, int col)
+{
+	visited[row][col] = 1;
+	int r = row, c = col, cur = 1;
+	while (cur <= n * n - 1)
+	{
+		movecounter = movecounter + num_moves(r, c);
+		int m = 10, pos = -1, s = rand() % 8;
+		for (int i = s; i < s + 8; i++)
+		{
+			int nr = r + moves[i % 8][0];
+			int nc = c + moves[i % 8][1];
+			if (!ok(nr, nc))
+				continue;
+			int t = num_moves(nr, nc);
+			if (t == 0 && cur != n * n - 1)
+				continue;
+			if (t < m)
+			{
+				m = t;
+				pos = i % 8;
+			}
+		}
+		if (pos == -1)
+			return false;
+		int new_r = r + moves[pos][0];
+		int new_c = c + moves[pos][1];
+		cur++;
+		visited[new_r][new_c] = cur;
+		r = new_r;
+		c = new_c;
+	}
+	return true;
+}
+int main(void)
+{
+	while (cin >> n)
+	{
+		movecounter = 0;
+		counter = 0;
+		time_point<Clock> start = Clock::now();
+		memset(visited, -1, sizeof(visited));
+		int x, y;
+		cin >> x >> y;
+		if (n % 2 == 1 || n == 2 || n == 4)
+		{
+			cout << "No Circuit Tour.\n\n";
+			continue;
+		}
+		while (!solve(x, y))
+		{
+			memset(visited, -1, sizeof(visited));
+			counter++;
+		}
+		time_point<Clock> end = Clock::now();
+		nanoseconds diff = duration_cast<nanoseconds>(end - start);
+		/*for (int i = 1; i < n + 1; i++)
+		{
+		for (int j = 1; j < n + 1; j++)
+		{
+		cout << setw(5) << visited[i][j];
+		}
+		cout << endl;
+		}
+		cout << endl;*/
+		long double timediff = diff.count() / (long double)1000000;
+		cout << timediff << " ms" << endl << counter << endl << movecounter << endl;
+	}
+	return 0;
+}

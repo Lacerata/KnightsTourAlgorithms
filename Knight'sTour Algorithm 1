@@ -1,0 +1,81 @@
+#include <iostream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <vector>
+#include <set>
+#include <map>
+#include <cstdlib>
+#include <ctime>
+#include <random>
+#include <iomanip>
+#include <chrono>
+#include <thread>
+using namespace std;
+using Clock = std::chrono::steady_clock;
+using std::chrono::time_point;
+using std::chrono::duration_cast;
+using std::chrono::nanoseconds;
+using std::chrono::milliseconds;
+using std::chrono::microseconds;
+using namespace std::literals::chrono_literals;
+using std::this_thread::sleep_for;
+int N[55][55], x, y, n, counter, prevR, prevC;
+int rowMoves[8] = { 2, 1, -1, -2, -2, -1,  1,  2 };
+int columnMoves[8] = { 1, 2,  2,  1, -1, -2, -2, -1 };
+void printSolution()
+{
+	for (int i = 0; i < n; i++)
+	{
+		for (int j = 0; j < n; j++)
+			cout << "  " << (N[i][j] < 100 ? N[i][j] < 10 ? "  " : " " : "") << N[i][j];
+		cout << endl;
+	}
+	return;
+}
+int search(int currentRow, int currentColumn, int counter)
+{
+	if (counter == n * n + 1)
+	{
+		printSolution();
+		return true;
+	}
+	for (int i = 0; i < 8; i++)
+	{
+		int r = currentRow + rowMoves[i];
+		int c = currentColumn + columnMoves[i];		
+		if (r >= 0 && r < n && c >= 0 && c < n && !N[r][c])
+		{
+			N[r][c] = counter;
+			if (search(r, c, counter + 1))
+				return true;
+			else
+				N[r][c] = 0;
+		}
+	}
+	return false;
+}
+int main(void)
+{
+	while (cin >> n >> x >> y)
+	{
+		time_point<Clock> start = Clock::now();
+		if (n == 2 || n == 4)
+		{
+			cout << "No Circuit Tour" << endl;
+			continue;
+		}
+		--x, --y;
+		memset(N, 0, sizeof(N));
+		counter = 1;		
+		N[x][y] = counter;
+		if (!search(x, y, counter + 1))
+			cout << "No Circuit Tour" << endl;
+		time_point<Clock> end = Clock::now();
+		nanoseconds diff = duration_cast<nanoseconds>(end - start);
+		long double timediff = diff.count() / (long double)1000000;
+		cout << timediff << " ms" << endl;
+	}
+	return 0;
+}
+
